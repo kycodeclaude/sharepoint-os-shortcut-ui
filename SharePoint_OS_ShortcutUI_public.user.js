@@ -1,8 +1,7 @@
 // ==UserScript==
 // @name         SharePoint OS - Shortcut Management UI
-// @name:ja      SharePoint OS - ショートカット管理UI
 // @namespace    http://tampermonkey.net/
-// @version      1.3.2
+// @version      1.3.3
 // @description  Turn SharePoint into a desktop-style workspace. Manage shortcuts, browse folders in windows, and work with files without leaving the page. Lite mode by default; Japanese / English UI.
 // @description:ja SharePointをデスクトップ風UIで使うためのショートカット管理ツール（初期設定はライトモード：主要機能のみ／日本語・English切替対応）
 // @author       kycodeclaude
@@ -298,7 +297,8 @@ const fetch = (function () {
         "今後この一覧を表示しない": "Do not show this list again",
         "🧩 機能の切替…ふだん使わない機能は、初期設定ではオフです": "🧩 Feature switches… less-used features are off by default",
         "⚡ 動く演出（背景・起動・クリック・警告・ティッカー）": "⚡ Motion effects (background, boot, clicks, alerts, ticker)",
-        "🔷 3Dビュー（左上「ショートカット管理エリア」の文字クリックで開く）": "🔷 3D view (click the “Shortcut area” text at the top left)",
+        "🔷 3Dビュー（スタートメニューの「🔷 3Dビューを開く」で開く）": "🔷 3D view (open from “🔷 Open 3D view” in the Start menu)",
+        "🔷 3Dビューを開く": "🔷 Open 3D view",
         "🎨 すべてのテーマを一覧に出す（女性向け・アニメ風・ゲーム風・宗教 ほか）": "🎨 Show all themes in the list (incl. anime-style, game-style and more)",
         "⚡ 演出レベル…このジャンル（超硬派・中二病・ぶっ飛び・ゲーム風・癒し）の演出の強さ": "⚡ Effect level… strength of effects for this genre",
         "⚙ 控えめ": "⚙ Subtle",
@@ -7043,7 +7043,7 @@ let zTop = 10;
         featSec.appendChild(capOf('🧩 機能の切替…ふだん使わない機能は、初期設定ではオフです'));
         [
             ['fx', '⚡ 動く演出（背景・起動・クリック・警告・ティッカー）', '演出つきテーマの動き。重い・うるさいときはオフのままにしてください'],
-            ['view3d', '🔷 3Dビュー（左上「ショートカット管理エリア」の文字クリックで開く）', 'オン／オフを切り替えたあとは、ページの再読み込みが必要です'],
+            ['view3d', '🔷 3Dビュー（スタートメニューの「🔷 3Dビューを開く」で開く）', 'オンにすると、スタートメニューに「🔷 3Dビューを開く」が出ます'],
             ['themes', '🎨 すべてのテーマを一覧に出す（女性向け・アニメ風・ゲーム風・宗教 ほか）', 'オフのあいだは、標準・定番配色・大人向け・工場向けだけを一覧に出します'],
         ].forEach(([name, label, hint]) => {
             const row = document.createElement('label');
@@ -7059,7 +7059,7 @@ let zTop = 10;
             cb.addEventListener('change', () => {
                 OSX_FEAT.set(name, cb.checked);
                 if (name === 'fx') { try { applyTheme(); sync(); } catch (e) { osxDbg('feat.fx', e); } }
-                else if (name === 'view3d') showToast('3Dビューを' + (cb.checked ? 'オン' : 'オフ') + 'にしました。ページを再読み込みすると反映されます');
+                else if (name === 'view3d') showToast(cb.checked ? '3Dビューをオンにしました。スタートメニューに「🔷 3Dビューを開く」が出ます' : '3Dビューをオフにしました');
                 else showToast('テーマ一覧は、この窓を閉じて開き直すと変わります');
             });
             featSec.appendChild(row);
@@ -24674,8 +24674,12 @@ customApps.forEach(a=>{if(!a.updatedAt)a.updatedAt=Date.now();});
     //    このブラウザにだけ最大500件まで記録する（localStorage）。SharePointの通常画面での操作や、他の人の操作は記録されない。
     //  ・記録するのは「いつ・何を・どこで」だけ。ファイルの中身は記録しない。
     // ======================================================================
-    const OSX_UI_VERSION = '1.3.2';
+    const OSX_UI_VERSION = '1.3.3';
     const OSX_CHANGELOG = [
+{
+"v": "1.3.3",
+"t": "スクリプト名は英語のみに統一しました。あわせて、3Dビューの入口をスタートメニューにも追加しました（機能の切替でオンの間だけ表示されます）。これまでは左上の文字をクリックするだけが入口で、見つけにくい状態でした。"
+},
 {
 "v": "1.3.2",
 "t": "スクリプト名と説明の既定言語を英語にし、日本語は言語別表記（@name:ja / @description:ja）で併記する形にしました。機能の変更はありません。"
@@ -33150,6 +33154,21 @@ html.g3-open .osx3-modeless .osx3-panel,html.g3-open #os-io-modal.osx3-iowin .os
                 try { openGlass3d(); } catch (err) { showToast('3Dビューを開けませんでした：' + ((err && err.message) || err)); }
             }, true);
         }
+        // v1.3.3：スタートメニューにも入口を作る（左上の文字クリックだけでは見つけられないため）。
+        // 表示は「🧩 機能の切替」で 3Dビュー がオンの間だけ（tick でスイッチに追随させる）
+        try {
+            const mi3d = document.createElement('div');
+            mi3d.id = 'os-glass3d-menu-item'; mi3d.className = 'os-menu-item'; mi3d.textContent = '🔷 3Dビューを開く';
+            mi3d.title = 'ショートカットを3Dで表示します';
+            mi3d.addEventListener('click', () => {
+                try { startMenu.classList.remove('active'); } catch (e) { osxDbg('glass3d.menuClose', e); }
+                if (!OSX_FEAT.on('view3d')) { showToast('3Dビューはオフです。🎨 テーマ窓の「🧩 機能の切替」でオンにしてください'); return; }
+                try { openGlass3d(); } catch (err) { showToast('3Dビューを開けませんでした：' + ((err && err.message) || err)); }
+            });
+            const syncMi3d = () => { mi3d.style.display = OSX_FEAT.on('view3d') ? '' : 'none'; };
+            syncMi3d();
+            osxRegisterMenuItem(mi3d, { tick: syncMi3d });
+        } catch (e) { osxDbg('glass3d.menuReg', e); }
         window.__osGlass3d = { open: openGlass3d, close: () => { const o = document.getElementById(OV_ID); if (o && o.__close) o.__close(); } };
     })();
 

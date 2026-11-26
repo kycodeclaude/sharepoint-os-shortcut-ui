@@ -1,12 +1,14 @@
 // ==UserScript==
 // @name         SharePoint OS - ショートカット管理UI
 // @namespace    http://tampermonkey.net/
-// @version      1.2.1
+// @version      1.2.2
 // @description  SharePointをデスクトップ風UIで使うためのショートカット管理ツール（初期設定はライトモード：主要機能のみ／日本語・English切替対応）
 // @author       kycodeclaude
 // @license      MIT
 // @homepageURL  https://github.com/kycodeclaude/sharepoint-os-shortcut-ui
 // @supportURL   https://github.com/kycodeclaude/sharepoint-os-shortcut-ui/issues
+// @updateURL    https://raw.githubusercontent.com/kycodeclaude/sharepoint-os-shortcut-ui/main/SharePoint_OS_ShortcutUI_public.user.js
+// @downloadURL  https://raw.githubusercontent.com/kycodeclaude/sharepoint-os-shortcut-ui/main/SharePoint_OS_ShortcutUI_public.user.js
 // @match        https://*.sharepoint.com/*
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
@@ -43,6 +45,7 @@
 //   ・🔷 3Dビュー … osx_feat_3d_v1（切替後は再読み込み）
 //   ・すべてのテーマ（演出つき・ジャンル別を含む） … osx_feat_themes_v1
 // 【言語】v1.2.0〜 日本語／English を切り替えられます（osx_lang_v1）。初回はブラウザの言語で決めます（日本語以外は English）。切替は🎨テーマ窓の「🧩 機能の切替」から（再読み込みで反映）。翻訳は辞書 OSX_I18N_EN にある文だけが対象です。
+// 【配布】GitHub リポジトリ（kycodeclaude/sharepoint-os-shortcut-ui）から配布しています。更新は @updateURL 経由で届きます。
 // 【日付シート確認】v1.2.0〜 対象は xlsx/xlsm。対象キーワード（osx_sheet_keyword_v1、🎨テーマ窓で変更可）が空なら全ブックが対象、入っていれば名前にその語を含むブックだけが対象です。
 // 【保守メモ】
 //   ・履歴を増やすときは、先頭コメントと [S09] の OSX_CHANGELOG の先頭に同じ内容を足す（OSX_UI_VERSION も更新）
@@ -24947,8 +24950,12 @@ customApps.forEach(a=>{if(!a.updatedAt)a.updatedAt=Date.now();});
     //    このブラウザにだけ最大500件まで記録する（localStorage）。SharePointの通常画面での操作や、他の人の操作は記録されない。
     //  ・記録するのは「いつ・何を・どこで」だけ。ファイルの中身は記録しない。
     // ======================================================================
-    const OSX_UI_VERSION = '1.2.1';
+    const OSX_UI_VERSION = '1.2.2';
     const OSX_CHANGELOG = [
+{
+"v": "1.2.2",
+"t": "GitHub からの直接インストールと自動更新に対応しました（更新チェック用のURLを追加）。配布は GitHub リポジトリから行います。Greasy Fork はコードの上限（2MB）のため掲載していません。"
+},
 {
 "v": "1.2.1",
 "t": "公開用のアカウントを匿名のものに変更しました（作者名・公開先URLを差し替え）。スタートメニューの基本セットに、開発の応援リンク（Ko-fi）を1件追加しました。"

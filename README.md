@@ -39,8 +39,12 @@ SharePoint を、デスクトップ風の画面（左：ショートカット、
 ## インストール
 
 1. ブラウザに [Tampermonkey](https://www.tampermonkey.net/) を入れます。
-2. `SharePoint_OS_ShortcutUI_public_v1.2.1.js` を Tampermonkey の新規スクリプトに貼り付けて保存します。
+2. **[インストールはこちら](https://raw.githubusercontent.com/kycodeclaude/sharepoint-os-shortcut-ui/main/SharePoint_OS_ShortcutUI_public.user.js)** を開くと、Tampermonkey のインストール画面が出ます。そのまま「インストール」を押してください。
 3. `https://〇〇.sharepoint.com/` を開きます。
+
+更新は、Tampermonkey が GitHub の最新版を自動で確認して届けます（v1.2.2〜）。
+
+> Greasy Fork には、コードの上限（2MB）のため掲載していません。配布はこの GitHub リポジトリだけです。
 
 ## このスクリプトが行うこと（通信・権限・保存）
 

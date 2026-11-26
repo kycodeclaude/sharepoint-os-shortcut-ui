@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         SharePoint OS - Shortcut Management UI
 // @namespace    http://tampermonkey.net/
-// @version      1.3.4
-// @description  Turn SharePoint into a desktop-style workspace. Manage shortcuts, browse folders in windows, and work with files without leaving the page. Lite mode by default; Japanese / English UI.
+// @version      1.4.0
+// @description  Turn SharePoint into a desktop-style workspace. Manage shortcuts, browse folders in windows, and work with files without leaving the page. Lite mode by default; full Japanese / English UI.
 // @description:ja SharePointをデスクトップ風UIで使うためのショートカット管理ツール（初期設定はライトモード：主要機能のみ／日本語・English切替対応）
 // @author       kycodeclaude
 // @license      MIT
@@ -12,6 +12,7 @@
 // @downloadURL  https://raw.githubusercontent.com/kycodeclaude/sharepoint-os-shortcut-ui/main/SharePoint_OS_ShortcutUI_public.user.js
 // @require      https://update.greasyfork.org/scripts/607400/SharePoint%20OS%20-%20data%3A%20Office%20templates.js
 // @require      https://update.greasyfork.org/scripts/607401/SharePoint%20OS%20-%20data%3A%20theme%20presets.js
+// @require      https://cdn.jsdelivr.net/gh/kycodeclaude/sharepoint-os-shortcut-ui@main/data/osx_i18n_en.js
 // @match        https://*.sharepoint.com/*
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
@@ -47,8 +48,8 @@
 //   ・動く演出（背景・起動・クリック・警告・ティッカー） … osx_feat_fx_v1
 //   ・🔷 3Dビュー … osx_feat_3d_v1（切替後は再読み込み）
 //   ・すべてのテーマ（演出つき・ジャンル別を含む） … osx_feat_themes_v1
-// 【言語】v1.2.0〜 日本語／English を切り替えられます（osx_lang_v1）。初回はブラウザの言語で決めます（日本語以外は English）。切替は🎨テーマ窓の「🧩 機能の切替」から（再読み込みで反映）。翻訳は辞書 OSX_I18N_EN にある文だけが対象です。
-// 【配布】GitHub リポジトリ（kycodeclaude/sharepoint-os-shortcut-ui）と Greasy Fork から配布しています。データファイル（ひな形・テーマ定義）は @require で Greasy Fork のライブラリから読み込みます。
+// 【言語】v1.2.0〜 日本語／English を切り替えられます（osx_lang_v1）。初回はブラウザの言語で決めます（日本語以外は English）。切替は🎨テーマ窓の「🧩 機能の切替」から（再読み込みで反映）。v1.4.0でアプリ内の英語表記に完全対応しました（画面の文字・ボタン・説明文・件数などが入る動的なメッセージ・標準ダイアログの文まで。辞書はデータファイル data/osx_i18n_en.js から読み込み、読めない場合は内蔵の最小辞書で動きます）。
+// 【配布】GitHub リポジトリ（kycodeclaude/sharepoint-os-shortcut-ui）から配布しています（Greasy Fork の掲載は取り下げ中）。データファイル（ひな形・テーマ定義・英語辞書）は @require で読み込みます。
 // 【日付シート確認】v1.2.0〜 対象は xlsx/xlsm。対象キーワード（osx_sheet_keyword_v1、🎨テーマ窓で変更可）が空なら全ブックが対象、入っていれば名前にその語を含むブックだけが対象です。
 // 【保守メモ】
 //   ・履歴を増やすときは、先頭コメントと [S09] の OSX_CHANGELOG の先頭に同じ内容を足す（OSX_UI_VERSION も更新）
@@ -327,13 +328,26 @@ const fetch = (function () {
         "ℹ 情報": "ℹ Info",
         "■ ファイル本体の情報": "■ File details",
     };
+    // v1.4.0：完全な英語辞書とメッセージパターンをデータファイル（data/osx_i18n_en.js）から取り込む。読めなければ内蔵の最小辞書だけで動く
+    if (typeof window !== 'undefined' && window.__OSX_I18N_EN_FULL) { try { Object.assign(OSX_I18N_EN, window.__OSX_I18N_EN_FULL); } catch (e) { osxDbg('i18n.full', e); } }
+    const OSX_I18N_PAT = [];
+    if (typeof window !== 'undefined' && Array.isArray(window.__OSX_I18N_PAT_FULL)) {
+        for (const p of window.__OSX_I18N_PAT_FULL) { try { OSX_I18N_PAT.push([new RegExp(p[0]), p[1]]); } catch (e) { osxDbg('i18n.pat', e); } }
+    }
+    function osxI18nText(t) {
+        if (!t) return null;
+        if (OSX_I18N_EN[t]) return OSX_I18N_EN[t];
+        if (!/[぀-ヿ㐀-鿿]/.test(t)) return null;
+        for (let i = 0; i < OSX_I18N_PAT.length; i++) { const pr = OSX_I18N_PAT[i]; if (pr[0].test(t)) return t.replace(pr[0], pr[1]); }
+        return null;
+    }
     function osxI18nNode(node) {
         const p = node.parentElement;
         if (!p) return;
         const tag = p.tagName;
         if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'TEXTAREA' || p.isContentEditable) return;
         const raw = node.nodeValue, t = raw && raw.trim();
-        if (t && OSX_I18N_EN[t]) node.nodeValue = raw.replace(t, OSX_I18N_EN[t]);
+        if (t) { const en = osxI18nText(t); if (en != null) node.nodeValue = raw.replace(t, en); }
     }
     function osxI18nApply(root) {
         if (!OSX_EN || !root) return;
@@ -346,18 +360,19 @@ const fetch = (function () {
                     if (!p) return NodeFilter.FILTER_REJECT;
                     const tag = p.tagName;
                     if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'TEXTAREA' || p.isContentEditable) return NodeFilter.FILTER_REJECT;
-                    return OSX_I18N_EN[node.nodeValue.trim()] ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+                    const tv = node.nodeValue.trim();
+                    return (OSX_I18N_EN[tv] || /[぀-ヿ㐀-鿿]/.test(tv)) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
                 }
             });
             const nodes = [];
             while (walker.nextNode()) nodes.push(walker.currentNode);
             for (const n of nodes) osxI18nNode(n);
-            const els = root.querySelectorAll('[placeholder],[title]');
+            const els = [root, ...root.querySelectorAll('[placeholder],[title]')];
             for (const el of els) {
                 const ph = el.getAttribute('placeholder');
-                if (ph && OSX_I18N_EN[ph.trim()]) el.setAttribute('placeholder', OSX_I18N_EN[ph.trim()]);
+                if (ph) { const en = osxI18nText(ph.trim()); if (en != null) el.setAttribute('placeholder', en); }
                 const ti = el.getAttribute('title');
-                if (ti && OSX_I18N_EN[ti.trim()]) el.setAttribute('title', OSX_I18N_EN[ti.trim()]);
+                if (ti) { const en = osxI18nText(ti.trim()); if (en != null) el.setAttribute('title', en); }
             }
         } catch (e) { osxDbg('i18n.apply', e); }
     }
@@ -368,13 +383,27 @@ const fetch = (function () {
             const mo = new MutationObserver((recs) => {
                 for (const r of recs) {
                     if (r.type === 'characterData') osxI18nNode(r.target);
+                    if (r.type === 'attributes' && r.target && r.target.getAttribute) {
+                        const v = r.target.getAttribute(r.attributeName);
+                        if (v) { const en = osxI18nText(v.trim()); if (en != null) r.target.setAttribute(r.attributeName, en); }
+                    }
                     if (r.addedNodes) r.addedNodes.forEach((n) => { if (n.nodeType === 1) osxI18nApply(n); else if (n.nodeType === 3) osxI18nNode(n); });
                 }
             });
-            mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+            mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['title', 'placeholder'] });
         } catch (e) { osxDbg('i18n.start', e); }
     }
     osxI18nStart();
+    // v1.4.0：標準ダイアログ（confirm/alert/prompt）の文も英語化する（ENのときだけ包む）
+    if (OSX_EN) {
+        try {
+            const osxDlgTr = (m) => { const s = String(m == null ? '' : m), t = s.trim(); if (!t) return m; const en = osxI18nText(t); return en != null ? s.replace(t, en) : m; };
+            const oc = window.confirm.bind(window), oa = window.alert.bind(window), op = window.prompt.bind(window);
+            window.confirm = (m) => oc(osxDlgTr(m));
+            window.alert = (m) => oa(osxDlgTr(m));
+            window.prompt = (m, d) => op(osxDlgTr(m), d);
+        } catch (e) { osxDbg('i18n.dialog', e); }
+    }
 
     // ---- v1.2.0：「最新の日付シートを確認」の対象キーワード（空欄＝すべての xlsx/xlsm） ----
     const OSX_SHEET_KW_KEY = 'osx_sheet_keyword_v1';
@@ -24674,8 +24703,12 @@ customApps.forEach(a=>{if(!a.updatedAt)a.updatedAt=Date.now();});
     //    このブラウザにだけ最大500件まで記録する（localStorage）。SharePointの通常画面での操作や、他の人の操作は記録されない。
     //  ・記録するのは「いつ・何を・どこで」だけ。ファイルの中身は記録しない。
     // ======================================================================
-    const OSX_UI_VERSION = '1.3.4';
+    const OSX_UI_VERSION = '1.4.0';
     const OSX_CHANGELOG = [
+{
+"v": "1.4.0",
+"t": "アプリ内の英語表記に完全対応しました。画面の文字・ボタン・説明文に加えて、件数などが入る動的なメッセージや確認ダイアログの文まで英語化します（英語辞書はデータファイルから読み込みます。読めない場合は内蔵の最小辞書で動きます）。日本語モードの表示は変わりません。"
+},
 {
 "v": "1.3.4",
 "t": "3Dビューが重いPCで固まる問題への対策として、背景の描画時間を測り、重い場合はアニメーションを自動で間引く／止める仕組みを入れました（止めた時はその旨を表示します）。"

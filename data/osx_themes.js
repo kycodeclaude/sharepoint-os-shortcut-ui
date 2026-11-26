@@ -5,6 +5,7 @@
 // @description  External data for SharePoint OS (theme preset definitions). Loaded via @require; not a standalone script.
 // @author       kycodeclaude
 // @license      MIT
+// @match        https://*.sharepoint.com/*
 // ==/UserScript==
 window.__OSX_THEME_PRESETS = (function () {
 function kawaiiTile(heart, star, dot) {

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SharePoint OS - ショートカット管理UI
 // @namespace    http://tampermonkey.net/
-// @version      1.3.0
+// @version      1.3.1
 // @description  SharePointをデスクトップ風UIで使うためのショートカット管理ツール（初期設定はライトモード：主要機能のみ／日本語・English切替対応）
 // @author       kycodeclaude
 // @license      MIT
@@ -9,8 +9,8 @@
 // @supportURL   https://github.com/kycodeclaude/sharepoint-os-shortcut-ui/issues
 // @updateURL    https://raw.githubusercontent.com/kycodeclaude/sharepoint-os-shortcut-ui/main/SharePoint_OS_ShortcutUI_public.user.js
 // @downloadURL  https://raw.githubusercontent.com/kycodeclaude/sharepoint-os-shortcut-ui/main/SharePoint_OS_ShortcutUI_public.user.js
-// @require      https://cdn.jsdelivr.net/gh/kycodeclaude/sharepoint-os-shortcut-ui@main/data/osx_templates.js
-// @require      https://cdn.jsdelivr.net/gh/kycodeclaude/sharepoint-os-shortcut-ui@main/data/osx_themes.js
+// @require      https://update.greasyfork.org/scripts/607400/SharePoint%20OS%20-%20data%3A%20Office%20templates.js
+// @require      https://update.greasyfork.org/scripts/607401/SharePoint%20OS%20-%20data%3A%20theme%20presets.js
 // @match        https://*.sharepoint.com/*
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
@@ -47,7 +47,7 @@
 //   ・🔷 3Dビュー … osx_feat_3d_v1（切替後は再読み込み）
 //   ・すべてのテーマ（演出つき・ジャンル別を含む） … osx_feat_themes_v1
 // 【言語】v1.2.0〜 日本語／English を切り替えられます（osx_lang_v1）。初回はブラウザの言語で決めます（日本語以外は English）。切替は🎨テーマ窓の「🧩 機能の切替」から（再読み込みで反映）。翻訳は辞書 OSX_I18N_EN にある文だけが対象です。
-// 【配布】GitHub リポジトリ（kycodeclaude/sharepoint-os-shortcut-ui）と Greasy Fork から配布しています。データファイル（ひな形・テーマ定義）は @require で jsDelivr 経由で読み込みます。
+// 【配布】GitHub リポジトリ（kycodeclaude/sharepoint-os-shortcut-ui）と Greasy Fork から配布しています。データファイル（ひな形・テーマ定義）は @require で Greasy Fork のライブラリから読み込みます。
 // 【日付シート確認】v1.2.0〜 対象は xlsx/xlsm。対象キーワード（osx_sheet_keyword_v1、🎨テーマ窓で変更可）が空なら全ブックが対象、入っていれば名前にその語を含むブックだけが対象です。
 // 【保守メモ】
 //   ・履歴を増やすときは、先頭コメントと [S09] の OSX_CHANGELOG の先頭に同じ内容を足す（OSX_UI_VERSION も更新）
@@ -24672,8 +24672,12 @@ customApps.forEach(a=>{if(!a.updatedAt)a.updatedAt=Date.now();});
     //    このブラウザにだけ最大500件まで記録する（localStorage）。SharePointの通常画面での操作や、他の人の操作は記録されない。
     //  ・記録するのは「いつ・何を・どこで」だけ。ファイルの中身は記録しない。
     // ======================================================================
-    const OSX_UI_VERSION = '1.3.0';
+    const OSX_UI_VERSION = '1.3.1';
     const OSX_CHANGELOG = [
+{
+"v": "1.3.1",
+"t": "データファイル（ひな形・テーマ定義）の読み込み先を Greasy Fork のライブラリに変更しました。機能の変更はありません。"
+},
 {
 "v": "1.3.0",
 "t": "Greasy Fork への掲載のため、データ部分（Officeひな形とテーマ定義）を別ファイルに分け、@require で読み込む形にしました。機能の変更はありません。配布は GitHub と Greasy Fork の両方から行います。"

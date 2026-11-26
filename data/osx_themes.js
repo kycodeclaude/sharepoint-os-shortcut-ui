@@ -1,5 +1,11 @@
-// SharePoint OS - external data file (loaded via @require)
-// Repository: https://github.com/kycodeclaude/sharepoint-os-shortcut-ui
+// ==UserScript==
+// @name         SharePoint OS - data: theme presets
+// @namespace    https://github.com/kycodeclaude/sharepoint-os-shortcut-ui
+// @version      1.3.0
+// @description  External data for SharePoint OS (theme preset definitions). Loaded via @require; not a standalone script.
+// @author       kycodeclaude
+// @license      MIT
+// ==/UserScript==
 window.__OSX_THEME_PRESETS = (function () {
 function kawaiiTile(heart, star, dot) {
         const H = 'M10 4.5C10 .5 3 .5 3 6c0 4.5 7 9.5 7 9.5s7-5 7-9.5C17 .5 10 .5 10 4.5z';

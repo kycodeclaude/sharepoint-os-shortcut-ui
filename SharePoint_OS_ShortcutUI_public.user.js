@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SharePoint OS - Shortcut Management UI
 // @namespace    http://tampermonkey.net/
-// @version      1.3.3
+// @version      1.3.4
 // @description  Turn SharePoint into a desktop-style workspace. Manage shortcuts, browse folders in windows, and work with files without leaving the page. Lite mode by default; Japanese / English UI.
 // @description:ja SharePointをデスクトップ風UIで使うためのショートカット管理ツール（初期設定はライトモード：主要機能のみ／日本語・English切替対応）
 // @author       kycodeclaude
@@ -24674,8 +24674,12 @@ customApps.forEach(a=>{if(!a.updatedAt)a.updatedAt=Date.now();});
     //    このブラウザにだけ最大500件まで記録する（localStorage）。SharePointの通常画面での操作や、他の人の操作は記録されない。
     //  ・記録するのは「いつ・何を・どこで」だけ。ファイルの中身は記録しない。
     // ======================================================================
-    const OSX_UI_VERSION = '1.3.3';
+    const OSX_UI_VERSION = '1.3.4';
     const OSX_CHANGELOG = [
+{
+"v": "1.3.4",
+"t": "3Dビューが重いPCで固まる問題への対策として、背景の描画時間を測り、重い場合はアニメーションを自動で間引く／止める仕組みを入れました（止めた時はその旨を表示します）。"
+},
 {
 "v": "1.3.3",
 "t": "スクリプト名は英語のみに統一しました。あわせて、3Dビューの入口をスタートメニューにも追加しました（機能の切替でオンの間だけ表示されます）。これまでは左上の文字をクリックするだけが入口で、見つけにくい状態でした。"
@@ -32238,7 +32242,7 @@ html.g3-open .osx3-modeless .osx3-panel,html.g3-open #os-io-modal.osx3-iowin .os
                     if (z2 > -.05) return false; PQ = -z2; PX = CX + F * x1 / PQ; PY = CY + F * y2 / PQ; return true;
                 };
             };
-            function drawBgx(tt, P, ry, warp, k, rx, fx) {
+            function drawBgx(tt, P, ry, warp, k, rx, fx, den) {
                 const sp = SPACE[k] || SPACE.slate, lv = sp.lv, gal = k === 'galaxy', d = W / Math.max(1, innerWidth), T = sp.t.map(h2c);
                 // 下地（暗い放射グラデ＋中心のほのかな光）は1回だけ作って使い回す
                 const bk = k + '|' + W + 'x' + H;
@@ -32256,7 +32260,7 @@ html.g3-open .osx3-modeless .osx3-panel,html.g3-open #os-io-modal.osx3-iowin .os
                 const pr = (v) => (pr2(v[0], v[1], v[2]) ? [PX, PY, PQ] : null);
                 // 星雲・天の川の光は、1/4の解像度で描いて引き伸ばす（広い面のグラデ塗りが一番重いため）
                 lg.setTransform(lo.width / W, 0, 0, lo.height / H, 0, 0); lg.globalCompositeOperation = 'source-over'; lg.clearRect(0, 0, W, H); lg.globalCompositeOperation = 'lighter';
-                const nn = gal ? SKY.neb.length : 5;
+                const nn = gal ? SKY.neb.length : (den && den < .5 ? 3 : 5);
                 for (let i = 0; i < nn; i++) {
                     const b = SKY.neb[i], q = pr(b.d); if (!q) continue;
                     const vis = Math.min(1, (q[2] - .05) / .35), R = F * b.r / Math.max(.4, q[2]), c = T[(b.ci + i) % T.length];
@@ -32287,14 +32291,14 @@ html.g3-open .osx3-modeless .osx3-panel,html.g3-open #os-io-modal.osx3-iowin .os
                 const sa = gal ? 1 : .55 * lv + .2, wp = warp > .05; if (wp) g.beginPath();
                 g.globalAlpha = sa; let lk = -1;
                 for (let i = 0; i < SKY.dim.length; i++) {
-                    if (!gal && (i % 10) >= 4) continue; const s = SKY.dim[i];
+                    if ((den && den < 1 && (i % (den < .5 ? 4 : 2)) !== 0) || (!gal && (i % 10) >= 4)) continue; const s = SKY.dim[i];
                     if (!pr2(s.x, s.y, s.z) || PX < -4 || PX > W + 4 || PY < -4 || PY > H + 4) continue;
                     if (s.k !== lk) { g.fillStyle = DIMFILL[s.k]; lk = s.k; }
                     const sz = DIMSZ[s.b] * d; g.fillRect(PX - sz / 2, PY - sz / 2, sz, sz);
                     if (wp && s.b > 0) { g.moveTo(PX, PY); g.lineTo(PX + (PX - CX) * warp * .22, PY + (PY - CY) * warp * .22); }
                 }
                 for (let i = 0; i < SKY.tw.length; i++) {
-                    if (!gal && (i & 1)) continue; const s = SKY.tw[i];
+                    if ((den && den < 1 && (i % (den < .5 ? 4 : 2)) !== 0) || (!gal && (i & 1))) continue; const s = SKY.tw[i];
                     if (!pr2(s.x, s.y, s.z) || PX < -6 || PX > W + 6 || PY < -6 || PY > H + 6) continue;
                     const t2 = .72 + .28 * Math.sin(tt * (1.1 + (s.p % 1.7)) + s.p), sz = (.9 + 1.9 * s.m) * d;
                     g.globalAlpha = Math.min(1, (.22 + .78 * s.m) * t2 * sa); g.fillStyle = STCRGB[s.c]; g.fillRect(PX - sz / 2, PY - sz / 2, sz, sz);
@@ -32325,9 +32329,9 @@ html.g3-open .osx3-modeless .osx3-panel,html.g3-open #os-io-modal.osx3-iowin .os
                 }
                 g.globalAlpha = 1;
             }
-            function frame(t, P, ry, warp, fx, bgk, rx) {
+            function frame(t, P, ry, warp, fx, bgk, rx, den) {
                 const tt = t / 1000, hz = H * 0.6;
-                if (bgk) { drawBgx(tt, P, ry, warp, bgk, rx || 0, fx); return; }
+                if (bgk) { drawBgx(tt, P, ry, warp, bgk, rx || 0, fx, den); return; }
                 let gr = g.createLinearGradient(0, 0, 0, H);
                 gr.addColorStop(0, P.bg0); gr.addColorStop(0.62, P.bg1); gr.addColorStop(1, P.bg0);
                 g.fillStyle = gr; g.fillRect(0, 0, W, H);
@@ -33109,6 +33113,10 @@ html.g3-open .osx3-modeless .osx3-panel,html.g3-open #os-io-modal.osx3-iowin .os
                 dockBadges(); paintBadges();
             }
 
+            // v1.3.4：描画が重いPCでは背景アニメーションを自動で間引く／止める（固まり防止）。
+            // bg.frame の実測時間（20回平均）が 24ms を超えたら段階を下げる。最終段は静止画にし、一度だけ知らせる
+            let qLevel = 0, qCost = 0, qSamples = 0, qStaticDone = false, qNotified = false;
+
             // ---------- メインループ ----------
             function loop(t) {
                 if (!alive) return;
@@ -33126,7 +33134,14 @@ html.g3-open .osx3-modeless .osx3-panel,html.g3-open #os-io-modal.osx3-iowin .os
                       const a1 = wvy.toFixed(2) + 'deg', b1 = wvx.toFixed(2) + 'deg';
                       if (a1 !== lwy || b1 !== lwx || tickN % 30 === 0) { lwy = a1; lwx = b1; document.querySelectorAll('.osx3-modeless,#os-io-modal.osx3-iowin').forEach((el) => { el.style.setProperty('--g3wy', a1); el.style.setProperty('--g3wx', b1); }); } }
                     { const ev = (drag || warp > .05) ? 1 : (prefs.fx === 0 ? 3 : 2); // 動かしている間だけ60fps、普段は30fps（軽量は20fps）
-                      if (tickN % ev === 0 && (!RM || tickN < 3 || tickN % 60 === 0)) bg.frame(t, palNow(), ry, RM ? 0 : warp, prefs.fx, prefs.bgk, rx); }
+                      const iv = qLevel === 0 ? ev : qLevel === 1 ? 4 : qLevel === 2 ? 8 : 0; // v1.3.4：重いPCでは間引き、最終段は静止画
+                      if (iv === 0) { if (!qStaticDone) { qStaticDone = true; try { bg.frame(t, palNow(), ry, 0, 0, prefs.bgk, rx, .4); } catch (e) { osxDbg('bgStatic', e); } } }
+                      else if (tickN % iv === 0 && (!RM || tickN < 3 || tickN % 60 === 0)) {
+                          const t0 = performance.now();
+                          bg.frame(t, palNow(), ry, RM ? 0 : warp, prefs.fx, prefs.bgk, rx, qLevel === 2 ? .4 : 1);
+                          qCost += performance.now() - t0; qSamples++;
+                          if (qSamples >= 20) { const avg = qCost / qSamples; qCost = 0; qSamples = 0; if (avg > 24 && qLevel < 3) { qLevel++; if (qLevel === 3 && !qNotified) { qNotified = true; try { toast('描画が重いため、3Dビューの背景アニメーションを止めました'); } catch (e) { osxDbg('qToast', e); } } } }
+                      } }
                 }
                 raf = requestAnimationFrame(loop);
             }

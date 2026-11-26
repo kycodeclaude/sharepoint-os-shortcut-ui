@@ -44,7 +44,7 @@ SharePoint を、デスクトップ風の画面（左：ショートカット、
 
 更新は、Tampermonkey が GitHub の最新版を自動で確認して届けます（v1.2.2〜）。
 
-> Greasy Fork には、コードの上限（2MB）のため掲載していません。配布はこの GitHub リポジトリだけです。
+> [Greasy Fork](https://greasyfork.org/ja/scripts/607402-sharepoint-os-%E3%82%B7%E3%83%A7%E3%83%BC%E3%83%88%E3%82%AB%E3%83%83%E3%83%88%E7%AE%A1%E7%90%86ui) にも掲載しています（データファイルを分離した v1.3.0 以降）。
 
 ## このスクリプトが行うこと（通信・権限・保存）
 

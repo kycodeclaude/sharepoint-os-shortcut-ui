@@ -1,8 +1,10 @@
 // ==UserScript==
-// @name         SharePoint OS - ショートカット管理UI
+// @name         SharePoint OS - Shortcut Management UI
+// @name:ja      SharePoint OS - ショートカット管理UI
 // @namespace    http://tampermonkey.net/
-// @version      1.3.1
-// @description  SharePointをデスクトップ風UIで使うためのショートカット管理ツール（初期設定はライトモード：主要機能のみ／日本語・English切替対応）
+// @version      1.3.2
+// @description  Turn SharePoint into a desktop-style workspace. Manage shortcuts, browse folders in windows, and work with files without leaving the page. Lite mode by default; Japanese / English UI.
+// @description:ja SharePointをデスクトップ風UIで使うためのショートカット管理ツール（初期設定はライトモード：主要機能のみ／日本語・English切替対応）
 // @author       kycodeclaude
 // @license      MIT
 // @homepageURL  https://github.com/kycodeclaude/sharepoint-os-shortcut-ui
@@ -24672,8 +24674,12 @@ customApps.forEach(a=>{if(!a.updatedAt)a.updatedAt=Date.now();});
     //    このブラウザにだけ最大500件まで記録する（localStorage）。SharePointの通常画面での操作や、他の人の操作は記録されない。
     //  ・記録するのは「いつ・何を・どこで」だけ。ファイルの中身は記録しない。
     // ======================================================================
-    const OSX_UI_VERSION = '1.3.1';
+    const OSX_UI_VERSION = '1.3.2';
     const OSX_CHANGELOG = [
+{
+"v": "1.3.2",
+"t": "スクリプト名と説明の既定言語を英語にし、日本語は言語別表記（@name:ja / @description:ja）で併記する形にしました。機能の変更はありません。"
+},
 {
 "v": "1.3.1",
 "t": "データファイル（ひな形・テーマ定義）の読み込み先を Greasy Fork のライブラリに変更しました。機能の変更はありません。"
